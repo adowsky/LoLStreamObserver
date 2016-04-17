@@ -1,17 +1,21 @@
 package com.adowsky.data;
 
 import com.adowsky.data.impl.StatusImpl;
+import com.adowsky.data.lol.GameResponse;
 import com.adowsky.data.lol.LoLServer;
 import com.adowsky.data.lol.Participant;
 import com.adowsky.data.lol.Summoner;
 import com.adowsky.data.lol.SummonerModel;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -46,7 +50,7 @@ public abstract class StatusFactory {
             }
 
         } catch (IOException ex) {
-            //TODO handle
+            ex.printStackTrace();
         }
         return result;
     }
@@ -85,9 +89,9 @@ public abstract class StatusFactory {
                 try {
                     game = fut.get();
                 } catch (ExecutionException | InterruptedException ex) {
-                    //TODO what should happen if there is no data?
+                    ex.printStackTrace();
                 }
-                if (game != null && !game.empty()) {
+                if (game != null) {
                     match = game;
                 }
             }
@@ -99,9 +103,10 @@ public abstract class StatusFactory {
 
     private static class MatchFindWorker implements Callable<Participant> {
         private final static ExecutorService SUMMONER_EXECUTOR = Executors.newFixedThreadPool(20);
-        private static final String BASE_LINK = "https://eune.api.pvp.net/api/lol/";
+        private static final String BASE_LINK = "https://eune.api.pvp.net/";
+        private static final String API_LOL = "api/lol/";
         private static final String SUMMONER_BY_NAME = "/v1.4/summoner/by-name/";
-        private static final String CURR_GAME = "/observer-mode/rest/consumer/getSpectatorGameInfo/";
+        private static final String CURR_GAME = "observer-mode/rest/consumer/getSpectatorGameInfo/";
 
         private final List<String> summoners;
         private final LoLServer server;
@@ -127,16 +132,17 @@ public abstract class StatusFactory {
                     matchFinders.add(() -> {
                         Summoner tmp = data.get(summ);
                         Participant m = null;
-                        if (status.getMatch().empty() && tmp != null) {
+                        if (status.getMatch() == null) {
                             try {
-                                List<Participant> list = mapper.readValue(new URL(createGameRequestAddress(tmp)),
-                                        new TypeReference<List<Participant>>(){});
-                                for(Participant p : list){
-                                    if(p.getName().equals(summ))
+                                GameResponse response =  mapper.readValue(new URL(createGameRequestAddress(tmp)),
+                                        GameResponse.class);
+                                for(Participant p : response.getParticipants()){
+                                    if(p.getSummonerId().equals(tmp.getId())){
                                         m = p;
+                                    }
                                 }
                             } catch (IOException ex) {
-                                //TODO handle exception
+                                ex.printStackTrace();
                             }
                         }
                         return m;
@@ -145,11 +151,11 @@ public abstract class StatusFactory {
                         List<Future<Participant>> results = SUMMONER_EXECUTOR.invokeAll(matchFinders);
                         results.stream().forEach(this::processFutureResult);
                     } catch (InterruptedException ex) {
-                        throw new IllegalStateException(ex);
+                        ex.printStackTrace();
                     }
                 }));
             } catch (IOException ex) {
-                //TODO
+                ex.printStackTrace();
             }
             return result;
         }
@@ -161,6 +167,7 @@ public abstract class StatusFactory {
             });
             StringBuilder sb = new StringBuilder();
             sb.append(BASE_LINK)
+                    .append(API_LOL)
                     .append(server.name())
                     .append(SUMMONER_BY_NAME)
                     .append(names.toString())
@@ -175,7 +182,7 @@ public abstract class StatusFactory {
                     .append(CURR_GAME)
                     .append(server.restId())
                     .append("/")
-                    .append(sm.getName())
+                    .append(sm.getId())
                     .append("?api_key=")
                     .append(RiotCredentials.API_KEY.toString());
             return sb.toString();
@@ -186,16 +193,16 @@ public abstract class StatusFactory {
                 Participant futureResult = val.get();
                 setResult(futureResult);
             } catch (InterruptedException | ExecutionException ex) {
-                //TODO handle the exception
+                ex.printStackTrace();
             }
         }
 
         private synchronized void setResult(Participant futureResult) {
-            if (!futureResult.empty()) {
-                if (!result.empty()) {
-                    throw new IllegalStateException("Multiple matches cannot be played at the same time!");
+            if (futureResult != null) {
+                if (result == null) {
+                    result = futureResult;
                 }
-                result = futureResult;
+                
             }
         }
 

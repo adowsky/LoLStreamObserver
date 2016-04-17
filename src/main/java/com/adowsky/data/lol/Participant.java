@@ -1,21 +1,24 @@
 package com.adowsky.data.lol;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 /**
  *
  * @author adowsky
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Participant {
 
     private String summonerName;
     private Integer championId;
+    private Long summonerId;
 
-    public String getName() {
+    public String getSummonerName() {
         return summonerName;
     }
 
-    public void setName(String name) {
+    public void setSummonerName(String name) {
         this.summonerName = name;
     }
 
@@ -27,8 +30,21 @@ public class Participant {
         this.championId = championId;
     }
 
-    public boolean empty() {
-        return summonerName == null;
+    public Long getSummonerId() {
+        return summonerId;
     }
 
+    public void setSummonerId(Long summonerId) {
+        this.summonerId = summonerId;
+    }
+    
+
+    public boolean empty() {
+        return summonerId == null;
+    }
+    
+    @Override
+    public String toString(){
+        return "[summonerName="+summonerName+",championId="+championId+"]";
+    }
 }

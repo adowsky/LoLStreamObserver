@@ -11,7 +11,7 @@ public class SummonerModel {
     }
     
     public SummonerModel(String name, LoLServer server){
-        this.name = name;
+        this.name = name.replace(" ", "").toLowerCase();
         this.server = server;
     }
 
@@ -24,7 +24,7 @@ public class SummonerModel {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = name.replace(" ", "").toLowerCase();
     }
 
     public void setServer(LoLServer server) {
