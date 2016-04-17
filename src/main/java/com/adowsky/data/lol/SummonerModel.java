@@ -1,9 +1,14 @@
 package com.adowsky.data.lol;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SummonerModel {
-    private final String name;
-    private final LoLServer server;
+    private String name;
+    private LoLServer server;
+    
+    public SummonerModel(){  
+    }
     
     public SummonerModel(String name, LoLServer server){
         this.name = name;
@@ -16,6 +21,14 @@ public class SummonerModel {
 
     public LoLServer getServer() {
         return server;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setServer(LoLServer server) {
+        this.server = server;
     }
     
 }

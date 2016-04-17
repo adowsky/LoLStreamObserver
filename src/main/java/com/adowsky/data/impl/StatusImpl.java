@@ -3,7 +3,7 @@
 package com.adowsky.data.impl;
 
 import com.adowsky.data.Status;
-import com.adowsky.data.lol.Match;
+import com.adowsky.data.lol.Participant;
 
 
 /**
@@ -13,7 +13,7 @@ import com.adowsky.data.lol.Match;
 public class StatusImpl  implements Status{
     private boolean online;
     private String game;
-    private volatile Match match;
+    private volatile Participant match;
     
     public StatusImpl(){
         online = false;
@@ -39,11 +39,11 @@ public class StatusImpl  implements Status{
     }
     
     @Override
-    public synchronized Match getMatch() {
+    public synchronized Participant getMatch() {
         return match;
     }
 
-    public synchronized void setMatch(Match match) {
+    public synchronized void setMatch(Participant match) {
         this.match = match;
     }
 

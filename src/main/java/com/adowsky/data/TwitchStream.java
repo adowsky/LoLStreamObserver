@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TwitchStream {
 
-    private String game;
+    private String game = "";
 
     public String getGame() {
         return game;

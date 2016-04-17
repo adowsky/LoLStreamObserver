@@ -1,6 +1,6 @@
 package com.adowsky.data;
 
-import com.adowsky.data.lol.Match;
+import com.adowsky.data.lol.Participant;
 
 /**
  *
@@ -9,5 +9,5 @@ import com.adowsky.data.lol.Match;
 public interface Status {
     boolean isOnline();
     String getGame();
-    Match getMatch();
+    Participant getMatch();
 }
