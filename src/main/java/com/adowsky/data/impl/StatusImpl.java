@@ -3,7 +3,12 @@
 package com.adowsky.data.impl;
 
 import com.adowsky.data.Status;
+import com.adowsky.data.lol.LoLServer;
 import com.adowsky.data.lol.Participant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -13,12 +18,12 @@ import com.adowsky.data.lol.Participant;
 public class StatusImpl  implements Status{
     private boolean online;
     private String game;
-    private volatile Participant match;
+    private final Map<LoLServer, List<Participant>> summoners;
     
     public StatusImpl(){
         online = false;
         game = "";
-        match = null;
+        summoners = new HashMap<>();
     }
     @Override
     public boolean isOnline() {
@@ -39,13 +44,30 @@ public class StatusImpl  implements Status{
     }
     
     @Override
-    public synchronized Participant getMatch() {
-        return match;
+    public Map<LoLServer, List<Participant>> getSummoners() {
+        return summoners;
     }
 
-    public synchronized void setMatch(Participant match) {
-        this.match = match;
+    public synchronized void addSummoner(Participant summoner, LoLServer server) {
+        List<Participant> list = summoners.get(server);
+        if(list == null){
+            list = new ArrayList<>();
+            summoners.put(server, list);
+        }
+        list.add(summoner);
     }
+     public synchronized void addSummoners(List<Participant> summoner, LoLServer server) {
+        List<Participant> list = summoners.get(server);
+        if(list == null){
+            list = new ArrayList<>();
+            summoners.put(server, list);
+        }
+        for(Participant s: summoner){
+            list.add(s);
+        }
+    }
+    
+    
 
     
 }

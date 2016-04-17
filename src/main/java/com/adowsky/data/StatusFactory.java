@@ -1,61 +1,89 @@
 package com.adowsky.data;
 
 import com.adowsky.data.impl.StatusImpl;
-import com.adowsky.data.lol.GameResponse;
 import com.adowsky.data.lol.LoLServer;
 import com.adowsky.data.lol.Participant;
 import com.adowsky.data.lol.Summoner;
 import com.adowsky.data.lol.SummonerModel;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
+
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import java.util.concurrent.Future;
-
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class StatusFactory {
 
-    private final static ExecutorService MATCH_EXECUTOR = Executors.newFixedThreadPool(10);
+    private final static ExecutorService SERVER_EXECUTOR = Executors.newFixedThreadPool(10);
+    private final static ExecutorService PART_EXECUTOR = Executors.newFixedThreadPool(10);
 
-    private final static String TWITCH_API_URL = "https://api.twitch.tv/kraken/streams/";
-
-    public static Status createStatus(String twitchName, List<SummonerModel> summonerName) {
+    @Autowired
+    private TwitchRepository twitch;
+    @Autowired
+    private LoLRepository riot;
+    
+    public StatusFactory(){
+    }
+    
+    public StatusFactory(TwitchRepository twitch, LoLRepository riot){
+        this.twitch = twitch;
+        this.riot = riot;
+    }
+    
+    public Status createStatus(String twitchName, List<SummonerModel> summonerName) {
         StatusImpl result = new StatusImpl();
-        ObjectMapper mapper = new ObjectMapper();
         Map<LoLServer, List<String>> usersOnServer = createSummonersOnServerMap(summonerName);
-        try {
-            JsonNode node = mapper.readValue(new URL(TWITCH_API_URL + twitchName), JsonNode.class);
-            TwitchStream stream = extractStreamFromJSon(node);
-            if (stream != null) {
-                result.setGame(stream.getGame());
-                result.setOnline(true);
+        Map<LoLServer, Map<String, Summoner>> usersDataOnServer = new HashMap<>();
+        TwitchStream stream = twitch.getStreamByUsername(twitchName);
+        if (stream != null) {
+            result.setGame(stream.getGame());
+            result.setOnline(true);
+        }
+        List<Callable<Boolean>> workers = new ArrayList<>();
+        usersOnServer.forEach((LoLServer server, List<String> user) -> {
+            workers.add((Callable<Boolean>) () -> {
+                usersDataOnServer.put(server, riot.getSummoners(user, server));
+                return true;
+            });
+        });
+        try{
+            List<Future<Boolean>> futures = SERVER_EXECUTOR.invokeAll(workers);
+            for(Future<Boolean> fut : futures){
+                try {
+                    fut.get();
+                } catch (ExecutionException ex) {
+                    ex.printStackTrace();
+                }
             }
-            
-            if (stream == null || result.getGame().equals("League of Legends")) {
-                result.setMatch(findMatch(usersOnServer, result));
+            List<Callable<Boolean>> patricipantWorkers = new ArrayList<>();
+            usersDataOnServer.forEach((server, map) ->{
+                patricipantWorkers.add((Callable<Boolean>) ()-> {
+                    Map<String, Summoner> apiResponse = riot.getParticipants(new ArrayList(map.values()), server);
+                    result.addSummoners(new ArrayList(apiResponse.values()), server);           
+                    return true;
+                });
+            });
+            futures = PART_EXECUTOR.invokeAll(patricipantWorkers);
+            for(Future<Boolean> fut : futures){
+                try {
+                    fut.get();
+                } catch (ExecutionException ex) {
+                    ex.printStackTrace();
+                }
             }
-
-        } catch (IOException ex) {
+        }catch(InterruptedException ex){
             ex.printStackTrace();
         }
+        
         return result;
     }
 
-    private static Map<LoLServer, List<String>> createSummonersOnServerMap(List<SummonerModel> summoners) {
+    private Map<LoLServer, List<String>> createSummonersOnServerMap(List<SummonerModel> summoners) {
         Map<LoLServer, List<String>> serverSumms = new HashMap<>();
         summoners.stream().forEach((summ) -> {
             List<String> list = serverSumms.get(summ.getServer());
@@ -67,145 +95,5 @@ public abstract class StatusFactory {
         });
         return serverSumms;
     }
-
-    private static TwitchStream extractStreamFromJSon(JsonNode node){
-        JsonNode stream = node.get("stream");
-        if(stream.isNull())
-            return null;
-        TwitchStream result = new TwitchStream();
-        result.setGame(stream.get("game").asText());
-        return result;
-    }
-    private static Participant findMatch(Map<LoLServer, List<String>> summoners, StatusImpl status) {
-        Participant match = null;
-        List<Callable<Participant>> workers = new ArrayList<>();
-        summoners.forEach((serv, name) -> {
-            workers.add(new MatchFindWorker(status, serv, name));
-        });
-        try {
-            List<Future<Participant>> futures = MATCH_EXECUTOR.invokeAll(workers);
-            for (Future<Participant> fut : futures) {
-                Participant game = match;
-                try {
-                    game = fut.get();
-                } catch (ExecutionException | InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-                if (game != null) {
-                    match = game;
-                }
-            }
-        } catch (InterruptedException ex) {
-            //throw new IllegalStateException("Summoner data cannot be obtained!", ex);
-        }
-        return match;
-    }
-
-    private static class MatchFindWorker implements Callable<Participant> {
-        private final static ExecutorService SUMMONER_EXECUTOR = Executors.newFixedThreadPool(20);
-        private static final String BASE_LINK = "https://eune.api.pvp.net/";
-        private static final String API_LOL = "api/lol/";
-        private static final String SUMMONER_BY_NAME = "/v1.4/summoner/by-name/";
-        private static final String CURR_GAME = "observer-mode/rest/consumer/getSpectatorGameInfo/";
-
-        private final List<String> summoners;
-        private final LoLServer server;
-        private final StatusImpl status;
-        private volatile Participant result;
-
-        public MatchFindWorker(StatusImpl s, LoLServer server, List<String> summoners) {
-            this.status = s;
-            this.server = server;
-            this.summoners = summoners;
-        }
-
-        @Override
-        public Participant call() {
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Summoner> data;
-            try {
-                data = mapper.readValue(new URL(createSummonerRequestAddress()),
-                        new TypeReference<Map<String, Summoner>>() {
-                });
-                List<Callable<Participant>> matchFinders = new ArrayList<>();
-                summoners.stream().forEach(((String summ) -> {
-                    matchFinders.add(() -> {
-                        Summoner tmp = data.get(summ);
-                        Participant m = null;
-                        if (status.getMatch() == null) {
-                            try {
-                                GameResponse response =  mapper.readValue(new URL(createGameRequestAddress(tmp)),
-                                        GameResponse.class);
-                                for(Participant p : response.getParticipants()){
-                                    if(p.getSummonerId().equals(tmp.getId())){
-                                        m = p;
-                                    }
-                                }
-                            } catch (IOException ex) {
-                                ex.printStackTrace();
-                            }
-                        }
-                        return m;
-                    });
-                    try {
-                        List<Future<Participant>> results = SUMMONER_EXECUTOR.invokeAll(matchFinders);
-                        results.stream().forEach(this::processFutureResult);
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                }));
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            return result;
-        }
-
-        private String createSummonerRequestAddress() {
-            StringJoiner names = new StringJoiner(",");
-            summoners.stream().forEach((s) -> {
-                names.add(s);
-            });
-            StringBuilder sb = new StringBuilder();
-            sb.append(BASE_LINK)
-                    .append(API_LOL)
-                    .append(server.name())
-                    .append(SUMMONER_BY_NAME)
-                    .append(names.toString())
-                    .append("?api_key=")
-                    .append(RiotCredentials.API_KEY.toString());
-            return sb.toString();
-        }
-
-        private String createGameRequestAddress(Summoner sm) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(BASE_LINK)
-                    .append(CURR_GAME)
-                    .append(server.restId())
-                    .append("/")
-                    .append(sm.getId())
-                    .append("?api_key=")
-                    .append(RiotCredentials.API_KEY.toString());
-            return sb.toString();
-        }
-
-        private void processFutureResult(Future<Participant> val) {
-            try {
-                Participant futureResult = val.get();
-                setResult(futureResult);
-            } catch (InterruptedException | ExecutionException ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        private synchronized void setResult(Participant futureResult) {
-            if (futureResult != null) {
-                if (result == null) {
-                    result = futureResult;
-                }
-                
-            }
-        }
-
-    }
-
+    
 }
