@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
 import java.net.URL;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class TwitchRepositoryImpl implements TwitchRepository {
 
     private final static String TWITCH_API_URL = "https://api.twitch.tv/kraken/streams/";

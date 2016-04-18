@@ -2,7 +2,6 @@ package com.adowsky.data;
 
 import com.adowsky.data.impl.StatusImpl;
 import com.adowsky.data.lol.LoLServer;
-import com.adowsky.data.lol.Participant;
 import com.adowsky.data.lol.Summoner;
 import com.adowsky.data.lol.SummonerModel;
 import java.util.ArrayList;
@@ -16,12 +15,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public abstract class StatusFactory {
+@Component
+public class StatusFactory {
 
     private final static ExecutorService SERVER_EXECUTOR = Executors.newFixedThreadPool(10);
     private final static ExecutorService PART_EXECUTOR = Executors.newFixedThreadPool(10);
-
     @Autowired
     private TwitchRepository twitch;
     @Autowired
@@ -29,7 +29,7 @@ public abstract class StatusFactory {
     
     public StatusFactory(){
     }
-    
+
     public StatusFactory(TwitchRepository twitch, LoLRepository riot){
         this.twitch = twitch;
         this.riot = riot;

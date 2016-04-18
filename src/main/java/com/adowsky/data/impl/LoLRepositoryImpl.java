@@ -20,11 +20,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class LoLRepositoryImpl implements LoLRepository {
 
     private final static ExecutorService GAME_EXECUTOR = Executors.newFixedThreadPool(20);
-    private static final String BASE_LINK = "https://eune.api.pvp.net/";
+    private static final String BASE_LINK = ".api.pvp.net/";
     private static final String API_LOL = "api/lol/";
     private static final String SUMMONER_BY_NAME = "/v1.4/summoner/by-name/";
     private static final String CURR_GAME = "observer-mode/rest/consumer/getSpectatorGameInfo/";
@@ -59,7 +61,9 @@ public class LoLRepositoryImpl implements LoLRepository {
             names.add(s);
         });
         StringBuilder sb = new StringBuilder();
-        sb.append(BASE_LINK)
+        sb.append("https://")
+                .append(server.name())
+                .append(BASE_LINK)
                 .append(API_LOL)
                 .append(server.name())
                 .append(SUMMONER_BY_NAME)
@@ -89,7 +93,9 @@ public class LoLRepositoryImpl implements LoLRepository {
 
     private String createGameRequestAddress(Summoner sm, LoLServer server) {
         StringBuilder sb = new StringBuilder();
-        sb.append(BASE_LINK)
+        sb.append("https://")
+                .append(server.name())
+                .append(BASE_LINK)
                 .append(CURR_GAME)
                 .append(server.restId())
                 .append("/")
@@ -151,7 +157,9 @@ public class LoLRepositoryImpl implements LoLRepository {
 
         private String createGameRequestAddress(Summoner sm, LoLServer server) {
             StringBuilder sb = new StringBuilder();
-            sb.append(BASE_LINK)
+            sb.append("https://")
+                    .append(server.name())
+                    .append(BASE_LINK)
                     .append(CURR_GAME)
                     .append(server.restId())
                     .append("/")
