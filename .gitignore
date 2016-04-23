@@ -1,3 +1,6 @@
 /mvnw
 /mvnw.cmd
 /src/main/java/com/adowsky/data/RiotCredentials.java
+/.mvn
+/.vscode
+/target
