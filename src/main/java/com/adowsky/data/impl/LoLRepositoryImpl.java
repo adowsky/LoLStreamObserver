@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.client.RestTemplate;
 
 @Repository
 public class LoLRepositoryImpl implements LoLRepository {
@@ -30,6 +31,11 @@ public class LoLRepositoryImpl implements LoLRepository {
     private static final String API_LOL = "api/lol/";
     private static final String SUMMONER_BY_NAME = "/v1.4/summoner/by-name/";
     private static final String CURR_GAME = "observer-mode/rest/consumer/getSpectatorGameInfo/";
+    private RestTemplate rest;
+
+    public LoLRepositoryImpl() {
+        rest = new RestTemplate();
+    }
 
     @Override
     public Summoner getSummoner(SummonerModel model) {
@@ -43,7 +49,7 @@ public class LoLRepositoryImpl implements LoLRepository {
 
     @Override
     public Map<String, Summoner> getSummoners(List<String> summs, LoLServer server) {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper(); //TODO to RestTemplate
         Map<String, Summoner> data = null;
         try {
             data = mapper.readValue(new URL(createSummonerRequestAddress(summs, server)),
@@ -75,18 +81,14 @@ public class LoLRepositoryImpl implements LoLRepository {
 
     @Override
     public Participant getParticipant(Summoner summ, LoLServer server) {
-        ObjectMapper mapper = new ObjectMapper();
+//        ObjectMapper mapper = new ObjectMapper();
         Participant result = null;
-        try {
-            GameResponse response = mapper.readValue(new URL(createGameRequestAddress(summ, server)),
-                    GameResponse.class);
-            for (Participant p : response.getParticipants()) {
-                if (p.getSummonerId().equals(summ.getId())) {
-                    result = p;
-                }
+        GameResponse response = rest.getForObject(createGameRequestAddress(summ, server),
+                GameResponse.class);
+        for (Participant p : response.getParticipants()) {
+            if (p.getSummonerId().equals(summ.getId())) {
+                result = p;
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
         }
         return result;
     }
@@ -107,50 +109,48 @@ public class LoLRepositoryImpl implements LoLRepository {
 
     @Override
     public Map<Long, Participant> getParticipants(List<Summoner> summ, LoLServer server) {
-        ObjectMapper mapper = new ObjectMapper();
+//        ObjectMapper mapper = new ObjectMapper();
         Map<Long, Participant> result = new HashMap<>();
         List<LoLGameFindWorker> workers = new ArrayList<>();
-        summ.stream().forEach((s)->workers.add(new LoLGameFindWorker(s, server)));
-        try{
+        summ.stream().forEach((s) -> workers.add(new LoLGameFindWorker(s, server)));
+        try {
             List<Future<Participant>> futureWorkers = GAME_EXECUTOR.invokeAll(workers);
-            futureWorkers.stream().forEach((future) ->{
-                try{
+            futureWorkers.stream().forEach((future) -> {
+                try {
                     Participant part = future.get();
                     result.put(part.getSummonerId(), part);
-                }catch(ExecutionException | InterruptedException ex){
+                } catch (ExecutionException | InterruptedException ex) {
                     ex.printStackTrace();
                 }
             });
-        }catch(InterruptedException ex){
+        } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
         return result;
     }
 
     private static class LoLGameFindWorker implements Callable<Participant> {
+
         private final Summoner summ;
         private final LoLServer server;
-        private final ObjectMapper mapper;
+        private final RestTemplate rest;
 
-        public LoLGameFindWorker(Summoner summ, LoLServer server){
+        public LoLGameFindWorker(Summoner summ, LoLServer server) {
             this.server = server;
             this.summ = summ;
-            mapper = new ObjectMapper();
-            
+            rest = new RestTemplate();
+
         }
+
         @Override
         public Participant call() throws Exception {
             Participant result = null;
-            try {
-                GameResponse response = mapper.readValue(new URL(createGameRequestAddress(summ, server)), GameResponse.class);
-                for (Participant p : response.getParticipants()) {
-                    if (p.getSummonerId().equals(summ.getId())) {
-                        result = p;
-                        break;
-                    }
+            GameResponse response = rest.getForObject(createGameRequestAddress(summ, server), GameResponse.class);
+            for (Participant p : response.getParticipants()) {
+                if (p.getSummonerId().equals(summ.getId())) {
+                    result = p;
+                    break;
                 }
-            } catch (IOException ex) {
-                ex.printStackTrace();
             }
             return result;
         }
