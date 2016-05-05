@@ -4,3 +4,6 @@
 /.mvn
 /.vscode
 /target
+/public/js/resources
+/public/bootstrap
+/public/react
