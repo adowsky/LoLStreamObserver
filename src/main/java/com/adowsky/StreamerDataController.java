@@ -19,7 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class StreamerDataController {
     @Autowired
     StatusFactory sf;
-    
+    /**
+     * @ExampleRequest  curl -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d '{"twitchName": "name", "lolAcc":[]}' http://localhost:8080/streamer
+     * @param wrapper
+     * @return 
+     */
     @RequestMapping(value = "/streamer", method = RequestMethod.POST)
     public Status getStreamerStatus(@RequestBody StreamerRequestParametersWrapper wrapper){
 

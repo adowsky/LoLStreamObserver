@@ -31,7 +31,7 @@ public class LoLRepositoryImpl implements LoLRepository {
     private static final String API_LOL = "api/lol/";
     private static final String SUMMONER_BY_NAME = "/v1.4/summoner/by-name/";
     private static final String CURR_GAME = "observer-mode/rest/consumer/getSpectatorGameInfo/";
-    private RestTemplate rest;
+    private final RestTemplate rest;
 
     public LoLRepositoryImpl() {
         rest = new RestTemplate();
