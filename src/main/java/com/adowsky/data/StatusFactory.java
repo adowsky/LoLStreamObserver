@@ -1,4 +1,4 @@
-package com.adowsky.data;
+    package com.adowsky.data;
 
 import com.adowsky.data.impl.StatusImpl;
 import com.adowsky.data.lol.LoLServer;
@@ -79,19 +79,20 @@ public class StatusFactory {
         }catch(InterruptedException ex){
             ex.printStackTrace();
         }
-        
+        System.out.println("Returning result!");
         return result;
     }
 
     private Map<LoLServer, List<String>> createSummonersOnServerMap(List<SummonerModel> summoners) {
         Map<LoLServer, List<String>> serverSumms = new HashMap<>();
+        
         summoners.stream().forEach((summ) -> {
             List<String> list = serverSumms.get(summ.getServer());
             if (list == null) {
                 list = new ArrayList<>();
                 serverSumms.put(summ.getServer(), list);
             }
-            list.add(summ.getName());
+            list.add(summ.getSummoner());
         });
         return serverSumms;
     }

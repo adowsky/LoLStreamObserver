@@ -120,7 +120,7 @@ public class LoLRepositoryImpl implements LoLRepository {
                     Participant part = future.get();
                     result.put(part.getSummonerId(), part);
                 } catch (ExecutionException | InterruptedException ex) {
-                    ex.printStackTrace();
+                    System.out.println("ERROR during getting Summoner Data");
                 }
             });
         } catch (InterruptedException ex) {

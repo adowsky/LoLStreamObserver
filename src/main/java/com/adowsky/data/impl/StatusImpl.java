@@ -18,12 +18,12 @@ import java.util.Map;
 public class StatusImpl  implements Status{
     private boolean online;
     private String game;
-    private final Map<LoLServer, List<Participant>> summoners;
+    private final List<Participant> summoners;
     
     public StatusImpl(){
         online = false;
         game = "";
-        summoners = new HashMap<>();
+        summoners = new ArrayList<>();
     }
     @Override
     public boolean isOnline() {
@@ -44,26 +44,28 @@ public class StatusImpl  implements Status{
     }
     
     @Override
-    public Map<LoLServer, List<Participant>> getSummoners() {
+    public List<Participant> getSummoners() {
         return summoners;
     }
 
     public synchronized void addSummoner(Participant summoner, LoLServer server) {
-        List<Participant> list = summoners.get(server);
-        if(list == null){
+        //List<Participant> list = summoners.get(server);
+        /*if(list == null){
             list = new ArrayList<>();
             summoners.put(server, list);
-        }
-        list.add(summoner);
+        }*/
+        summoner.setServer(server);
+        summoners.add(summoner);
     }
      public synchronized void addSummoners(List<Participant> summoner, LoLServer server) {
-        List<Participant> list = summoners.get(server);
+       /* List<Participant> list = summoners.get(server);
         if(list == null){
             list = new ArrayList<>();
             summoners.put(server, list);
-        }
+        }*/
         for(Participant s: summoner){
-            list.add(s);
+            s.setServer(server);
+            summoners.add(s);
         }
     }
     

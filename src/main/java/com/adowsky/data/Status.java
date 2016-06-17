@@ -12,5 +12,5 @@ import java.util.Map;
 public interface Status {
     boolean isOnline();
     String getGame();
-    Map<LoLServer, List<Participant>> getSummoners();
+    List<Participant> getSummoners();
 }

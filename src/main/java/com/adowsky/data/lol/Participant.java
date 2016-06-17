@@ -13,6 +13,15 @@ public class Participant {
     private String summonerName;
     private Integer championId;
     private Long summonerId;
+    private LoLServer server;
+
+    public LoLServer getServer() {
+        return server;
+    }
+
+    public void setServer(LoLServer server) {
+        this.server = server;
+    }
 
     public String getSummonerName() {
         return summonerName;
