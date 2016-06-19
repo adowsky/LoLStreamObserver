@@ -6,9 +6,7 @@ import com.adowsky.data.Status;
 import com.adowsky.data.lol.LoLServer;
 import com.adowsky.data.lol.Participant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -64,7 +62,7 @@ public class StatusImpl  implements Status{
             summoners.put(server, list);
         }*/
         for(Participant s: summoner){
-            s.setServer(server);
+            s.setServer(server);            
             summoners.add(s);
         }
     }

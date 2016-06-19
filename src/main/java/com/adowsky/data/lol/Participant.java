@@ -11,7 +11,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Participant {
 
     private String summonerName;
-    private Integer championId;
+    private Long championId;
+    private String championNameId;
     private Long summonerId;
     private LoLServer server;
 
@@ -31,14 +32,22 @@ public class Participant {
         this.summonerName = name;
     }
 
-    public Integer getChampionId() {
+    public Long getChampionId() {
         return championId;
     }
 
-    public void setChampionId(Integer championId) {
+    public void setChampionId(Long championId) {
         this.championId = championId;
     }
 
+    public String getChampionNameId() {
+        return championNameId;
+    }
+
+    public void setChampionNameId(String championName) {
+        this.championNameId = championName;
+    }
+    
     public Long getSummonerId() {
         return summonerId;
     }

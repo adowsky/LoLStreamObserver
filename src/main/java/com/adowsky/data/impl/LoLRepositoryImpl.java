@@ -4,6 +4,7 @@ import com.adowsky.data.LoLRepository;
 import com.adowsky.data.lol.GameResponse;
 import com.adowsky.data.lol.LoLServer;
 import com.adowsky.data.lol.Participant;
+import com.adowsky.data.lol.RestChampionList;
 import com.adowsky.data.lol.Summoner;
 import com.adowsky.data.lol.SummonerModel;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -31,10 +32,14 @@ public class LoLRepositoryImpl implements LoLRepository {
     private static final String API_LOL = "api/lol/";
     private static final String SUMMONER_BY_NAME = "/v1.4/summoner/by-name/";
     private static final String CURR_GAME = "observer-mode/rest/consumer/getSpectatorGameInfo/";
+    private static final String CHAMPION_LIST_URL = "http://ddragon.leagueoflegends.com/cdn/6.12.1/data/en_US/champion.json";
     private final RestTemplate rest;
+    private static Map<Long, String> champions;
 
     public LoLRepositoryImpl() {
         rest = new RestTemplate();
+        initializeChampionsMap();
+        champions.forEach((k,v) ->{System.out.println("id "+k+"  val "+ v);});
     }
 
     @Override
@@ -118,7 +123,8 @@ public class LoLRepositoryImpl implements LoLRepository {
             futureWorkers.stream().forEach((future) -> {
                 try {
                     Participant part = future.get();
-                    result.put(part.getSummonerId(), part);
+                    part.setChampionNameId(champions.get(part.getChampionId()));
+                    result.put(part.getSummonerId(), part);                  
                 } catch (ExecutionException | InterruptedException ex) {
                     System.out.println("ERROR during getting Summoner Data");
                 }
@@ -128,7 +134,19 @@ public class LoLRepositoryImpl implements LoLRepository {
         }
         return result;
     }
-
+    
+    @Override
+    public String getChampionNameById(long id) {
+        return champions.get(id);
+    }
+    
+    private void initializeChampionsMap(){
+        champions = new HashMap<>();
+        RestChampionList response = rest.getForObject(CHAMPION_LIST_URL, RestChampionList.class);
+        response.getData().forEach((key, value) ->{
+            champions.put(Long.valueOf((String)((Map)value).get("key")), (String)((Map)value).get("id"));
+        });
+    }
     private static class LoLGameFindWorker implements Callable<Participant> {
 
         private final Summoner summ;
@@ -171,4 +189,5 @@ public class LoLRepositoryImpl implements LoLRepository {
 
     }
 
+    
 }

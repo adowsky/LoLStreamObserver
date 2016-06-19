@@ -17,4 +17,5 @@ public interface LoLRepository {
     Map<String, Summoner> getSummoners(List<String> summs, LoLServer server);
     Participant getParticipant(Summoner summ, LoLServer server);
     Map<Long, Participant> getParticipants(List<Summoner> summ, LoLServer server);
+    String getChampionNameById(long id);
 }
