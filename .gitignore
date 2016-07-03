@@ -1,6 +1,6 @@
 /mvnw
 /mvnw.cmd
-/src/main/java/com/adowsky/data/RiotCredentials.java
+/src/main/java/com/adowsky/data/impl/RiotCredentials.java
 /.mvn
 /.vscode
 /target
@@ -8,3 +8,4 @@
 /public/bootstrap
 /public/react
 /public/node_modules
+/public/bootstrap-select
