@@ -1,0 +1,117 @@
+html{
+    height: 100%;
+}
+body{
+    background-color: #121314;
+    height: 100%;
+}
+.nopadding {
+    padding-left: 0  !important;
+    padding-right: 0 !important;
+}
+
+.content-head{
+    background-color: #27292b;
+    color: white;
+    padding: 5px;
+    border-bottom: 1px solid #121314;
+
+}
+.content-body{
+    padding: 0;
+}
+
+.entry-cell{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 0 2px;
+}
+.streamer-cell{
+    border-right: 1px solid #696666;
+}
+.streamer-cell::before{
+    content: '';
+    width: 3px;
+    height: 87%;
+    background-color: #c10202;
+}
+.summoner-container{
+    padding: 0;
+}
+.summoner-cell{
+    border-top: 1px solid #696666;
+    background: rgba(0,0,0,0);
+    margin-bottom: -1px;
+    margin-top: -1px;
+    padding:    3px 4px 3px 3px;
+}
+.summoner-cell img{
+    margin-right: 7px;
+}
+.summoner-cell::after{
+    content: '';
+    height:85%;
+    width: 3px;
+    background: #c10202;
+    position: absolute;
+}
+.online{
+    background-color: rgba(28, 255, 0, 0.12);
+    color: #d1d1d1;
+}
+.online::before, .online::after{
+    background-color: #57b700;
+}
+.entry{
+    color: #b9b9b9;
+    border-bottom: 1px solid #121314;
+    border-top: 1px solid #696666;
+    border-left:1px solid #696666;
+    border-right:1px solid #696666;
+    background: #3c3d42;
+    padding: 0;
+}
+.entry:hover{
+    background: #38383a;
+}
+.cell-input{
+    width: 50%;
+    float: left;
+}
+.entry-menu{
+    margin-right: 10px;
+}
+.entry-menu img{
+    margin: 0;
+}
+
+.edit-button{
+    background:#0b0031;
+    border: 1px solid #a5a9d4;
+    margin-right: 1px;
+}
+.edit-button:hover{
+    background: #19132d;
+    border-color: #010c40;
+}
+.data-table p{
+    float: left;
+
+}
+.row-eq-height {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display:         flex;
+}
+.nav>li>a:hover{
+    background: rgba(255,255,255,0.1);
+}
+a{
+    color: #71b8f5;
+}
+a:focus,a:hover,a:visited,a:active{
+    background: transparent !important;
+    color: #5590c5;
+}
