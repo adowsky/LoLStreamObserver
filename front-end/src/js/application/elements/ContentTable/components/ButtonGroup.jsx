@@ -11,7 +11,7 @@ export default class ButtonGroup extends React.Component {
         return <ReactCSSTransitionGroup transitionName="button-transition" className="button-group"
                                          transitionEnterTimeout={500}
                                         transitionLeaveTimeout={300}>
-            {this.props.buttons.map((button)=>
+            {this.props.buttons.map((button) =>
                 <button key={button.name} className={button.aClass} onClick={button.action}/>
             )}
         </ReactCSSTransitionGroup>

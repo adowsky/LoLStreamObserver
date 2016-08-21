@@ -1,6 +1,8 @@
-@import url(https://fonts.googleapis.com/css?family=Harmattan);
+@import url(https://fonts.googleapis.com/css?family=Harmattan&subset=latin,latin-ext);
+@import url(http://fonts.googleapis.com/css?family=Advent+Pro&subset=latin,latin-ext);
+@import url(http://fonts.googleapis.com/css?family=Amarante&subset=latin,latin-ext);
 
-$contentFont: Harmattan;
+$contentFont: "Advent Pro";
 $defaultFontSize: 18px;
 $globalBgColor: #121314;
 $tableHeaderBg: #27292b;
@@ -15,6 +17,9 @@ $online-background-color: rgba(0,232,7,0.03);
 $button-background-color: #484646;
 $button-border-color: #a0a0a0;
 $button-decoration-color: #d6d6e9;
+$input-disabled-bg-color: #cecece;
+$input-disabled-color: #999;
+$select-arrow-color : #5d5d5d;
 
 $modal-background-color: rgba(4, 2, 14, 0.69);
 $modal-bars-color: #232323;
@@ -64,6 +69,7 @@ body {
 }
 
 button {
+  font-family: $contentFont;
   background: no-repeat center;
   background-size: cover;
   outline: none;
@@ -74,7 +80,22 @@ input {
   border: none;
   border-bottom: solid 2px #c9c9c9;
   transition: border 0.3s;
+  background: white;
+  color: #292929;
   outline: none
+}
+
+input::-moz-placeholder {
+  color: $input-disabled-color;
+  opacity:1;
+}
+
+input:-ms-input-placeholder {
+  color: $input-disabled-color;
+}
+
+input::-webkit-input-placeholder{
+  color: $input-disabled-color;
 }
 
 input:focus,
@@ -82,15 +103,62 @@ input.focus {
   border-bottom: solid 2px #969696;
 }
 
+input:disabled{
+  background-color: $input-disabled-bg-color;
+}
+
+select{
+  margin: 0 1px 5px 0;
+  background: white;
+  padding: 7px 11px 7px 7px;
+  border: none;
+  border-bottom: solid 2px #c9c9c9;
+  outline: none;
+  appearance:none;
+  -moz-appearance:none;
+  -webkit-appearance:none;
+  width: available;
+  width: -moz-available;
+}
+
+select:disabled{
+  background-color: $input-disabled-bg-color;
+  color: $input-disabled-color;
+}
+
 #application {
   width: 100%;
   margin: 0;
+}
+
+.online {
+  &::after, &::before {
+    background-color: $online-color !important;
+  }
+}
+
+.offline {
+  &::after, &::before {
+    background-color: $offline-color !important;
+  }
+}
+
+.circle {
+  display: inline-flex;
+}
+
+.circle::after {
+  content: '';
+  border-radius: 50%;
+  height: 8px;
+  width: 8px;
 }
 
 .header {
   clear: both;
   margin: 0 auto;
   display: inline-block;
+  width: 100%;
   text-align: center;
 
   img {
@@ -101,20 +169,32 @@ input.focus {
     color: $textColor;
   }
 
+  .logo{
+    text-align: center;
+    font-family: 'Amarante';
+    font-size: $defaultFontSize;
+  }
 }
 
 .navigation {
   display: inline-block;
+  padding: 10px 0;
 
   button {
     background: transparent;
     border: 0;
     padding: 5px 10px;
+    display: inline-flex;
+    align-items: center;
 
     &:active &:focus {
       background: transparent;
       border: 0;
 
+    }
+
+    .circle::after {
+      margin-left: 5px;
     }
 
     &:hover {
@@ -224,9 +304,6 @@ input.focus {
 
   .online {
     background: $online-background-color;
-    &::after, &::before {
-      background-color: $online-color;
-    }
   }
 
   .summoner-content {
@@ -292,26 +369,13 @@ input.focus {
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
+    padding: 20px 0;
 
     input {
       width: 100%;
       box-sizing: border-box;
       margin-bottom: 5px;
     }
-
-    select{
-      margin: 0 1px 5px 0;
-      background: white;
-      padding: 7px;
-      border: none;
-      border-bottom: solid 2px #c9c9c9;
-      outline: none;
-    }
-
-    select:disabled{
-      background: buttonface;
-    }
-
 
   }
   @keyframes modal {
@@ -322,14 +386,8 @@ input.focus {
 
 
   .form-content {
-    padding: 5% 3%;
+    padding: 20px 10px;
     border: 1px solid $modal-form-border;
-    margin: 3% auto;
-
-    span {
-      display: flex;
-      font-size: 14px;
-    }
   }
 
   .form-row {
@@ -394,4 +452,27 @@ input.focus {
   padding-left: 0;
   padding-right: 0;
   transition: all 300ms linear;
+}
+
+.info {
+  display: flex;
+  font-size: 14px;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.select-wrapper::after{
+  content:"";
+  position:absolute;
+  right:3px;
+  top:50%;
+  margin-top:-6px;
+  height:0;
+  width:0;
+  border-top:6px solid $select-arrow-color;
+  border-left:4px solid transparent;
+  border-right:4px solid transparent;
+  pointer-events:none;
 }

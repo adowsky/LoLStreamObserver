@@ -1,4 +1,5 @@
 "use strict";
+
 import React from 'react';
 import localstorage from 'localStorage';
 import AppView from "./AppView.jsx";
@@ -20,6 +21,7 @@ export default class App extends React.Component {
         this.fetchFromServer = this.fetchFromServer.bind(this);
         this.prepareRequestBody = this.prepareRequestBody.bind(this);
         this.onlineNotification = this.onlineNotification.bind(this);
+        this.changeOptions = this.changeOptions.bind(this);
 
         this.state = {
             showAdd: false,
@@ -28,12 +30,15 @@ export default class App extends React.Component {
 
         this.rest = rest;
         this.summonerSound = new Audio("../sound/summ_on.wav");
+        this.streamerSound = new Audio("../sound/streamer_on.wav");
         this.summonerSound.volume = 0.5;
     }
 
     componentWillMount() {
         let streamersString = localstorage.getItem("streamers");
+        let optionsString = localstorage.getItem("options");
         let streamers = (streamersString == null) ? [] : JSON.parse(streamersString);
+
         streamers = streamers.map((streamer) => {
             streamer.online = false;
             streamer.summoners = streamer.summoners.map(summoner =>{
@@ -44,9 +49,14 @@ export default class App extends React.Component {
             });
             return streamer;
         });
-        let state = {streamers: streamers};
-        this.setState(Object.assign(this.state, state));
 
+        let options = (optionsString == null) ? App.defaultOptions : JSON.parse(optionsString);
+        let state = {
+            streamers: streamers,
+            options: (options instanceof Object) ? options : {}
+        };
+
+        this.setState(Object.assign(this.state, state));
     }
 
     componentDidMount() {
@@ -62,15 +72,15 @@ export default class App extends React.Component {
 
     componentDidUpdate() {
         localstorage.setItem("streamers", JSON.stringify(this.state.streamers));
+        localstorage.setItem("options", JSON.stringify(this.state.options));
     }
 
     getChildContext() {
         return {
-            color: ['abc', 'vcx'],
             functions: this.getFunctions(),
             streamers: this.state.streamers,
+            options: this.state.options,
             debug: true
-
         };
     }
 
@@ -83,17 +93,31 @@ export default class App extends React.Component {
             fetchData: this.fetchFromServer,
             removeSummoner: this.removeSummoner,
             removeStreamer: this.removeStreamer,
-            playSound: this.onlineNotification
+            playSound: this.onlineNotification,
+            changeOptions: this.changeOptions
         }; //@todo replace with proper functions
     }
 
+    changeOptions(options){
+        let newOptions = Object.assign({}, this.state.options, options);
+        this.setState({options: newOptions});
+
+    }
+
     onlineNotification(type = "") {
-        switch (type){
-            case "summoner":
-                this.summonerSound.play();
-                break;
-            case "streamer":
-                break;
+        if(this.state.options.sound) {
+            switch (type) {
+                case "summoner":
+                    if(!this.summonerSound.paused || this.summonerSound.currentTime) {
+                        this.summonerSound.play();
+                    }
+                    break;
+                case "streamer":
+                    if(!this.streamerSound.paused || this.streamerSound.currentTime) {
+                        this.streamerSound.play();
+                    }
+                    break;
+            }
         }
     }
 
@@ -160,10 +184,10 @@ export default class App extends React.Component {
     fetchFromServer() {
         let currentStreamers = this.state.streamers;
         this.rest({
-            path: App.serverEndpoint,
+            // path: "http://lolstreamobserver.herokuapp.com/streamers",
+            path: "http://localhost:8080/streamers",
             entity: this.prepareRequestBody()
         }).then((response) => {
-            let start = new Date().getTime();
             response.entity.forEach((streamer) => {
                 let target = currentStreamers.find((old, index) => old.name === streamer.streamer);
                 target.online = streamer.online;
@@ -179,7 +203,6 @@ export default class App extends React.Component {
                     }
                 });
             });
-            console.log("response processing last " + (new Date().getTime() - start).toString() + " ms");
             this.refresh();
         });
     }
@@ -200,12 +223,13 @@ export default class App extends React.Component {
 
 }
 
-
-App.childContextTypes = {
-    color: React.PropTypes.array,
-    functions: React.PropTypes.object,
-    streamers: React.PropTypes.array,
-    debug: React.PropTypes.bool
+App.defaultOptions = {
+  sound: true
 };
 
-App.serverEndpoint = "http://localhost:8080/streamers";
+App.childContextTypes = {
+    functions: React.PropTypes.object,
+    streamers: React.PropTypes.array,
+    options: React.PropTypes.object,
+    debug: React.PropTypes.bool
+};

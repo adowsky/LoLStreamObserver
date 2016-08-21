@@ -26,7 +26,8 @@ export default class AddEntryForm extends React.Component {
     componentDidUpdate() {
         if (this.props.shouldFinish) {
             let streamer = this.state.streamer;
-            let summoners = this.state.summoners.filter((summoner) => summoner.name.trim().length > 0);
+            let summoners = this.state.summoners.filter(
+                (summoner) =>summoner.name != undefined && summoner.name.trim().length > 0);
             this.props.finish({
                 name: streamer,
                 online: false,
@@ -80,7 +81,7 @@ export default class AddEntryForm extends React.Component {
                 <input placeholder="Summoner" onChange={this.handleSummonerEdit.bind(this, summonersNumber)} value={""}
                        disabled={summonersDisable}/>
             </div>
-            <span>{(summonersDisable) ? AddEntryForm.disabledMessage : null}</span>
+            <div className="info">{(summonersDisable) ? AddEntryForm.disabledMessage : null}</div>
         </div>
     }
 }

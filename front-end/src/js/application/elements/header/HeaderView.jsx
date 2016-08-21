@@ -8,19 +8,21 @@ export default class HeaderView extends React.Component {
 
     render() {
         return (
-            <div className="header">
-                <img src={this.props.logoLocation} alt={this.props.logoAltName}/>
+            <header className="header">
+                <object className="logo" data={this.props.logoLocation} type="image/png">
+                    {this.props.logoAltName}
+                </object>
                 <nav className="navigation">
-                    {this.context.menu.map((obj) =>
-                        <button key={obj.name} onClick={obj.action}>{obj.name}</button>)}
+                    {this.props.menu.map((obj) =>
+                        <button key={obj.name} onClick={obj.action}>
+                            {obj.name}
+                            {(obj.hasOwnProperty("customObject")) ? obj.customObject : null}
+                        </button>
+                    )}
                 </nav>
-            </div>);
+            </header>);
     }
 }
-
-HeaderView.contextTypes = {
-    menu: React.PropTypes.array
-};
 
 HeaderView.defaultProps = {
     logoLocation: '/images/logo.png',

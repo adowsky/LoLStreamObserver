@@ -5,7 +5,7 @@
     <artifactId>lolstreamobserver-api</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>LoLStreamObserver</name>
+    <name>LoLStreamObserver-api</name>
     <description>League of Legends streamers activity checker</description>
 
     <parent>

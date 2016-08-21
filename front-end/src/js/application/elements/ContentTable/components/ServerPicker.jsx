@@ -9,11 +9,13 @@ export default class ServerPicker extends React.Component {
     render() {
         let disabled = this.props.disabled;
         let value = this.props.value;
-        return <select value={value} onChange={this.props.handler} disabled={disabled}>
-            {ServerPicker.availableServers.map(
-                (server) => <option key={server} value={server}>{server}</option>
-            )}
-        </select>
+        return <span className="select-wrapper">
+            <select value={value} onChange={this.props.handler} disabled={disabled}>
+                {ServerPicker.availableServers.map(
+                    (server) => <option key={server} value={server}>{server}</option>
+                )}
+            </select>
+        </span>
     }
 }
 

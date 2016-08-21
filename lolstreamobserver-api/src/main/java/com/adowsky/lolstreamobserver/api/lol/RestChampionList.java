@@ -5,9 +5,9 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RestChampionList {
-    private Map<String, Object> data;
+    private Map<String, ChampionData> data;
 
-    public Map<String, Object> getData() {
+    public Map<String, ChampionData> getData() {
         return data;
     }
 
@@ -19,7 +19,7 @@ public class RestChampionList {
             championList = new RestChampionList();
         }
 
-        public Builder withData(Map<String, Object> data){
+        public Builder withData(Map<String, ChampionData> data){
             championList.data = data;
             return this;
         }

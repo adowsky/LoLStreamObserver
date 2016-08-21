@@ -6,16 +6,16 @@ export default class Header extends React.Component {
     constructor(props) {
         super(props);
         this.getMenu = this.getMenu.bind(this);
+        this.changeSound = this.changeSound.bind(this)
     }
 
-    getChildContext() {
-        return {
-            menu: this.getMenu()
-        };
+    changeSound(){
+        this.context.functions.changeOptions({sound: !this.context.options.sound});
     }
 
 
     getMenu() {
+        let soundState = (this.context.options.sound) ? 'online' : 'offline';
         return [
             {
                 action: this.context.functions.showAdd,
@@ -28,20 +28,23 @@ export default class Header extends React.Component {
             {
                 name: 'Purge Data',
                 action: this.context.functions.purgeData
+            },
+            {
+                name: 'Sound: ',
+                action: this.changeSound,
+                customObject: <span className={"circle " + soundState} />
             }
         ]
     }
 
     render() {
         return (
-            <HeaderView/>
+            <HeaderView menu={this.getMenu()} />
         );
     }
 }
 
-Header.childContextTypes = {
-    menu: React.PropTypes.array
-};
 Header.contextTypes = {
-    functions: React.PropTypes.object
+    functions: React.PropTypes.object,
+    options: React.PropTypes.object
 };

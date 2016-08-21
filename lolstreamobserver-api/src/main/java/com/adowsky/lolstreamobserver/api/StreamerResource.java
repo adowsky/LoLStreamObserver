@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StreamerResource {
 
-    @Valid
     private List<SummonerModel> lolAcc;
     @NotNull
     @Size(min = 1)

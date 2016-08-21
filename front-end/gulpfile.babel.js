@@ -8,8 +8,9 @@ import buffer from "vinyl-buffer";
 import htmlmin from "gulp-htmlmin";
 import image from 'gulp-image';
 import sass from "gulp-sass";
+import uglify from 'gulp-uglify'
 
-const basePath = "../lolstreamobserver-impl/src/main/webapp";
+const basePath = "../public/";
 
 const paths = {
 
@@ -41,13 +42,13 @@ gulp.task('build:js', () => {
         .on("error", function (err) { console.log("Error : " + err.message); })
         .pipe(source(paths.OUT_JS_FILE))
         .pipe(buffer())
-        //.pipe(uglify())
+        .pipe(uglify())
         .pipe(gulp.dest('.'));
 });
 
 gulp.task('build:css', () =>{
    return gulp.src(paths.CSS_IN)
-       .pipe(sass().on('error', sass.logError))
+       .pipe(sass({style: 'compressed'}).on('error', sass.logError))
        .pipe(gulp.dest(paths.CSS_DEST));
 });
 

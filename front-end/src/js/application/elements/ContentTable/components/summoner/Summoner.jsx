@@ -100,6 +100,7 @@ export default class Summoner extends React.Component {
 Summoner.contextTypes = {
     functions: React.PropTypes.object.isRequired
 };
+
 Summoner.defaultProps = {
     summoner: {
         name: '',

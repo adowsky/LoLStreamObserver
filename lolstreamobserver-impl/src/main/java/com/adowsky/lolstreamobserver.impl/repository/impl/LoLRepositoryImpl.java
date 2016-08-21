@@ -6,6 +6,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +17,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Repository
 public class LoLRepositoryImpl implements LoLRepository {
@@ -29,34 +34,36 @@ public class LoLRepositoryImpl implements LoLRepository {
     private final RestTemplate rest;
 
 
-
-    public LoLRepositoryImpl() {
-        rest = new RestTemplate();
+    @Autowired
+    public LoLRepositoryImpl(RestTemplate restTemplate) {
+        rest = restTemplate;
         champions = initializeChampionsMap();
     }
 
-    @Override
-    public Summoner getSummoner(SummonerModel model) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Summoner getSummonerByName(String name, LoLServer server) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Map<String, Summoner> getSummoners(List<String> summs, LoLServer server) {
-        ObjectMapper mapper = new ObjectMapper(); //TODO to RestTemplate
-        Map<String, Summoner> data = null;
+    private Map<Long, String> initializeChampionsMap() {
         try {
-            data = mapper.readValue(new URL(createSummonerRequestAddress(summs, server)),
-                    new TypeReference<Map<String, Summoner>>() {
-                    });
-        } catch (IOException ex) {
-            ex.printStackTrace();
+            return rest.getForObject(CHAMPION_LIST_URL, RestChampionList.class)
+                    .getData().entrySet().stream()
+                    .map(Map.Entry::getValue)
+                    .collect(Collectors.toMap(ChampionData::getKey, ChampionData::getId));
+
+        } catch (HttpStatusCodeException ex) {
+            LOGGER.error("Error during fetching Champion List", ex.getMessage());
+            return Collections.emptyMap();
         }
-        return data;
+    }
+
+    @Override
+    public Optional<Map<String, Summoner>> getSummoners(List<String> summs, LoLServer server) {
+        try {
+            return Optional.of(rest.exchange(
+                            createSummonerRequestAddress(summs, server),
+                            HttpMethod.GET,
+                            null,
+                            new ParameterizedTypeReference<Map<String, Summoner>>() {}).getBody());
+        } catch (HttpStatusCodeException ex) {
+            return Optional.empty();
+        }
     }
 
     private String createSummonerRequestAddress(List<String> summoners, LoLServer server) {
@@ -74,81 +81,46 @@ public class LoLRepositoryImpl implements LoLRepository {
     }
 
     @Override
-    public Participant getParticipant(Summoner summ, LoLServer server) {
-        Participant result = null;
-        GameResponse response = rest.getForObject(createGameRequestAddress(summ, server),
-                GameResponse.class);
-        for (Participant p : response.getParticipants()) {
-            if (p.getSummonerId().equals(summ.getId())) {
-                result = p;
-            }
-        }
-        return result;
-    }
-
-    private String createGameRequestAddress(Summoner sm, LoLServer server) {
-        return "https://" +
-                server.name() +
-                BASE_LINK +
-                CURR_GAME +
-                server.restId() +
-                "/" +
-                sm.getId() +
-                "?api_key=" +
-                RiotCredentials.API_KEY.toString();
-    }
-
-    @Override
-    public Map<Long, Participant> getParticipants(List<Summoner> summ, LoLServer server) {
-//        ObjectMapper mapper = new ObjectMapper();
-        Map<Long, Participant> result = new HashMap<>();
-        List<LoLGameFindWorker> workers = new ArrayList<>();
-        summ.forEach((s) -> workers.add(new LoLGameFindWorker(s, server)));
+    public Map<Long, Participant> getParticipants(Collection<Summoner> summ, LoLServer server) {
+        List<LoLGameFindWorker> workers = summ.stream()
+                .map((summoner) -> new LoLGameFindWorker(summoner, server))
+                .collect(Collectors.toList());
         try {
-            List<Future<Participant>> futureWorkers = GAME_EXECUTOR.invokeAll(workers);
-            futureWorkers.forEach((future) -> {
-                try {
-                    Optional<Participant> part = Optional.ofNullable(future.get());
-                    if(part.isPresent()) {
-                        Participant toResult = new Participant.Builder()
-                                .fromPrototype(part.get())
-                                .withChampionNameId(champions.get(part.get().getChampionId()))
-                                .build();
-                        result.put(part.get().getSummonerId(), toResult);
-                    }
-                } catch (ExecutionException | InterruptedException ex) {
-                    LOGGER.warn("Error during fetching summoner's game data: " + ex.getMessage());
-                }
-            });
+            return GAME_EXECUTOR.invokeAll(workers).stream()
+                    .map(this::processParticipantFuture)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toMap(Participant::getSummonerId, Function.identity()));
         } catch (InterruptedException ex) {
             LOGGER.error("Cannot invoke workers to fetch summoner's game data");
+            return Collections.emptyMap();
         }
-        return result;
     }
 
-    @Override
-    public String getChampionNameById(long id) {
-        return champions.get(id);
-    }
+    private Optional<Participant> processParticipantFuture(Future<Participant> future) {
+        try {
+            return Optional.ofNullable(future.get())
+                    .map(participant -> new Participant.Builder()
+                            .fromPrototype(participant)
+                            .withChampionNameId(champions.get(participant.getChampionId()))
+                            .build());
+        } catch (ExecutionException | InterruptedException ex) {
+            LOGGER.error("Error during fetching summoner's game data: " + ex.getMessage());
+            return Optional.empty();
+        }
 
-    private Map<Long, String> initializeChampionsMap() {
-        HashMap<Long, String> champions = new HashMap<>();
-        RestChampionList response = rest.getForObject(CHAMPION_LIST_URL, RestChampionList.class);
-        response.getData().forEach((key, value) ->
-                champions.put(Long.valueOf((String) ((Map) value).get("key")), (String) ((Map) value).get("id")));
-        return champions;
     }
 
     private static class LoLGameFindWorker implements Callable<Participant> {
 
+        private static final RestTemplate rest = new RestTemplate();
+
         private final Summoner summ;
         private final LoLServer server;
-        private final RestTemplate rest;
 
         LoLGameFindWorker(Summoner summ, LoLServer server) {
             this.server = server;
             this.summ = summ;
-            rest = new RestTemplate();
         }
 
         @Override

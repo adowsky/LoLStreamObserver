@@ -10,7 +10,8 @@ export default class Streamer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            edited: false
+            edited: false,
+            played: false
         };
         this.handleEditName = this.handleEditName.bind(this);
         this.handleChangeEditState = this.handleChangeEditState.bind(this);
@@ -19,6 +20,17 @@ export default class Streamer extends React.Component {
         this.getEditButtons = this.getEditButtons.bind(this);
         this.getStandardButtons = this.getStandardButtons.bind(this);
 
+    }
+
+    componentWillReceiveProps(nextProps) {
+        let online = nextProps.streamer.online;
+
+        if(online && !this.state.played) {
+            this.context.functions.playSound("streamer");
+            this.setState({played: true});
+        } else if (!online && this.state.played){
+            this.setState({played: false});
+        }
     }
 
 
@@ -90,5 +102,8 @@ export default class Streamer extends React.Component {
         </div>
     }
 }
+Streamer.contextTypes = {
+    functions: React.PropTypes.object.isRequired
+};
 
 Streamer.baseUrl = "http://www.twitch.tv/";
