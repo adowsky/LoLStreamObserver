@@ -22,6 +22,9 @@ export default class App extends React.Component {
         this.prepareRequestBody = this.prepareRequestBody.bind(this);
         this.onlineNotification = this.onlineNotification.bind(this);
         this.changeOptions = this.changeOptions.bind(this);
+        this.offlineSummoners = this.offlineSummoners.bind(this);
+
+        console.log(this.props.host);
 
         this.state = {
             showAdd: false,
@@ -154,7 +157,7 @@ export default class App extends React.Component {
     }
 
     refresh() {
-        this.setState(this.state);
+        this.forceUpdate();
     }
 
     invokeAdd() {
@@ -183,11 +186,15 @@ export default class App extends React.Component {
 
     fetchFromServer() {
         let currentStreamers = this.state.streamers;
+        let host = this.props.host;
+
         this.rest({
             // path: "http://lolstreamobserver.herokuapp.com/streamers",
-            path: "http://localhost:8080/streamers",
+            // path: "http://localhost:8080/streamers",
+            path: `http://${host}/streamers`,
             entity: this.prepareRequestBody()
         }).then((response) => {
+            this.offlineSummoners();
             response.entity.forEach((streamer) => {
                 let target = currentStreamers.find((old, index) => old.name === streamer.streamer);
                 target.online = streamer.online;
@@ -203,7 +210,18 @@ export default class App extends React.Component {
                     }
                 });
             });
-            this.refresh();
+            this.setState({
+                streamers: currentStreamers
+            });
+        });
+    }
+
+    offlineSummoners() {
+        this.state.streamers.forEach(streamer =>{
+            streamer.summoners.forEach(summoner => {
+                summoner.online = false;
+                delete summoner.champion;
+        })
         });
     }
 

@@ -7,10 +7,7 @@ package com.adowsky.lolstreamobserver.impl.repository;
 
 import com.adowsky.lolstreamobserver.api.twitch.TwitchStream;
 
-/**
- *
- * @author adowsky
- */
+
 public interface TwitchRepository {
     TwitchStream getStreamByUsername(String username);
 }

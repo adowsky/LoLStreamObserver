@@ -10,19 +10,20 @@ import image from 'gulp-image';
 import sass from "gulp-sass";
 import uglify from 'gulp-uglify'
 
-const basePath = "../public/";
+const basePath = "public/";
 
 const paths = {
 
-    HTML: 'src/index.html',
-    ALL: ['./src/js/*.jsx', './src/js/**/*.jsx', './index.html'],
-    JS: ['./src/js/*.jsx', './src/js/**/*.jsx'],
-    OUT: './js/build.js',
-    DEST_BUILD: './dist/build',
-    DEST: './dist',
-    ENTRY_POINT: './src/js/start.jsx',
+    HTML: 'front-end/*.html',
+    IMAGES: 'front-end/resources/img/*',
+    ALL: ['front-end/src/js/*.jsx', 'front-end/src/js/**/*.jsx', 'front-end/index.html'],
+    JS: ['front-end/src/js/*.jsx', 'front-end/src/js/**/*.jsx'],
+    OUT: 'front-end/js/build.js',
+    DEST_BUILD: 'front-end/dist/build',
+    DEST: 'front-end/dist',
+    ENTRY_POINT: 'front-end/src/js/start.jsx',
     OUT_JS_FILE: basePath + '/js/bundle.js',
-    CSS_IN: 'src/css/**/*.scss',
+    CSS_IN: 'front-end/src/css/**/*.scss',
     OUT_CSS: 'view.css',
     CSS_DEST: basePath + '/css',
     IMAGES_DEST: basePath + '/resources/img/'
@@ -34,6 +35,10 @@ const options= {
         debug: true
     }
 };
+
+gulp.task('prod', () => {
+    process.env.NODE_ENV = 'production';
+});
 
 gulp.task('build:js', () => {
     return browserify(options.browserify)
@@ -53,20 +58,24 @@ gulp.task('build:css', () =>{
 });
 
 gulp.task('build:html', () =>
-    gulp.src('./*.html')
+    gulp.src(paths.HTML)
     .pipe(htmlmin({collapseWhitespace: true}))
     .pipe(gulp.dest(basePath))
 );
 
 gulp.task('build:images', () =>{
-    gulp.src('./resources/img/*')
+    gulp.src(paths.IMAGES)
         .pipe(image())
         .pipe(gulp.dest(paths.IMAGES_DEST));
 });
 
 gulp.task('watch', () => {
-    gulp.watch('js/**/*.jsx', ['build:js']);
-    gulp.watch('css/**/*.scss',['build:css']);
+    gulp.watch('front-end/src/js/**/*.jsx', ['build:js']);
+    gulp.watch('front-end/js/css/**/*.scss',['build:css']);
 });
+
+gulp.task('build', [ 'build:css', 'build:html', 'build:js', 'build:images' ]);
+
+gulp.task('build:prod', [ 'prod', 'build:css', 'build:html', 'build:js', 'build:images' ]);
 
 gulp.task('default', [ 'build:css', 'build:html', 'build:js', 'build:images', 'watch' ]);

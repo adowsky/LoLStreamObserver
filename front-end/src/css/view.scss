@@ -20,6 +20,7 @@ $button-decoration-color: #d6d6e9;
 $input-disabled-bg-color: #cecece;
 $input-disabled-color: #999;
 $select-arrow-color : #5d5d5d;
+$dark-font: #292929;
 
 $modal-background-color: rgba(4, 2, 14, 0.69);
 $modal-bars-color: #232323;
@@ -81,7 +82,7 @@ input {
   border-bottom: solid 2px #c9c9c9;
   transition: border 0.3s;
   background: white;
-  color: #292929;
+  color: $dark-font;
   outline: none
 }
 
@@ -111,6 +112,7 @@ select{
   margin: 0 1px 5px 0;
   background: white;
   padding: 7px 11px 7px 7px;
+  color: $dark-font;
   border: none;
   border-bottom: solid 2px #c9c9c9;
   outline: none;

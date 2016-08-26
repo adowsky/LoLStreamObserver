@@ -4,7 +4,7 @@
   "description": "Client server application to track Twitch's streamers activity and their activity on League of Legends accounts.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "gulp build:prod"
   },
   "repository": {
     "type": "git",
@@ -17,11 +17,11 @@
     "url": "https://github.com/adowsky/LoLStreamObserver/issues"
   },
   "homepage": "https://github.com/adowsky/LoLStreamObserver#readme",
-  "dependencies": {
-    "react": "^15.2.1",
-    "react-dom": "^15.2.1"
+  "engines": {
+    "node": "4.2.6",
+    "npm": "3.5.2"
   },
-  "devDependencies": {
+  "dependencies": {
     "babel-plugin-react-transform": "^2.0.2",
     "babel-plugin-transform-react-jsx": "^6.8.0",
     "babel-preset-es2015": "^6.9.0",
@@ -44,7 +44,6 @@
     "react-addons-css-transition-group": "^15.2.1",
     "react-addons-transition-group": "^15.2.1",
     "react-dom": "^15.2.1",
-    "react-sound": "^0.5.2",
     "rest": "^2.0.0",
     "uglify": "^0.1.5",
     "vinyl-buffer": "^1.0.0",

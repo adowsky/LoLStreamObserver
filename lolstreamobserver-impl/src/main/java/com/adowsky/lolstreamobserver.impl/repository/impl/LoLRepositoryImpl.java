@@ -2,8 +2,6 @@ package com.adowsky.lolstreamobserver.impl.repository.impl;
 
 import com.adowsky.lolstreamobserver.api.lol.*;
 import com.adowsky.lolstreamobserver.impl.repository.LoLRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +11,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
@@ -32,11 +28,13 @@ public class LoLRepositoryImpl implements LoLRepository {
 
     private final Map<Long, String> champions;
     private final RestTemplate rest;
+    private final RiotCredentials riotCredentials;
 
 
     @Autowired
-    public LoLRepositoryImpl(RestTemplate restTemplate) {
-        rest = restTemplate;
+    public LoLRepositoryImpl(RestTemplate restTemplate, RiotCredentials riotCredentials) {
+        this.rest = restTemplate;
+        this.riotCredentials = riotCredentials;
         champions = initializeChampionsMap();
     }
 
@@ -57,11 +55,13 @@ public class LoLRepositoryImpl implements LoLRepository {
     public Optional<Map<String, Summoner>> getSummoners(List<String> summs, LoLServer server) {
         try {
             return Optional.of(rest.exchange(
-                            createSummonerRequestAddress(summs, server),
-                            HttpMethod.GET,
-                            null,
-                            new ParameterizedTypeReference<Map<String, Summoner>>() {}).getBody());
+                    createSummonerRequestAddress(summs, server),
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<Map<String, Summoner>>() {
+                    }).getBody());
         } catch (HttpStatusCodeException ex) {
+            LOGGER.warn("No summoners found: Http status: ", ex.getStatusCode());
             return Optional.empty();
         }
     }
@@ -77,13 +77,13 @@ public class LoLRepositoryImpl implements LoLRepository {
                 SUMMONER_BY_NAME +
                 names.toString() +
                 "?api_key=" +
-                RiotCredentials.API_KEY.toString();
+                riotCredentials.getKey();
     }
 
     @Override
     public Map<Long, Participant> getParticipants(Collection<Summoner> summ, LoLServer server) {
         List<LoLGameFindWorker> workers = summ.stream()
-                .map((summoner) -> new LoLGameFindWorker(summoner, server))
+                .map((summoner) -> new LoLGameFindWorker(summoner, server, riotCredentials.getKey()))
                 .collect(Collectors.toList());
         try {
             return GAME_EXECUTOR.invokeAll(workers).stream()
@@ -117,10 +117,12 @@ public class LoLRepositoryImpl implements LoLRepository {
 
         private final Summoner summ;
         private final LoLServer server;
+        private final String credentials;
 
-        LoLGameFindWorker(Summoner summ, LoLServer server) {
+        LoLGameFindWorker(Summoner summ, LoLServer server, String credentials) {
             this.server = server;
             this.summ = summ;
+            this.credentials = credentials;
         }
 
         @Override
@@ -129,6 +131,7 @@ public class LoLRepositoryImpl implements LoLRepository {
                 GameResponse response = rest.getForObject(createGameRequestAddress(summ, server), GameResponse.class);
                 return getWantedParticipant(response);
             } catch (HttpStatusCodeException e) {
+                LOGGER.warn("LOL game not found. Http status: ", e.getStatusCode());
                 return null;
             }
         }
@@ -142,7 +145,7 @@ public class LoLRepositoryImpl implements LoLRepository {
                     "/" +
                     sm.getId() +
                     "?api_key=" +
-                    RiotCredentials.API_KEY.toString();
+                    credentials;
         }
 
         private Participant getWantedParticipant(GameResponse response) {
