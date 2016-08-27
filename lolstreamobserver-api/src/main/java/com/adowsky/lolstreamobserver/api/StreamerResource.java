@@ -1,13 +1,13 @@
 package com.adowsky.lolstreamobserver.api;
 
 import com.adowsky.lolstreamobserver.api.lol.SummonerModel;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StreamerResource {
@@ -17,6 +17,13 @@ public class StreamerResource {
     @Size(min = 1)
     private String twitchName;
 
+    @JsonCreator
+    public StreamerResource(@JsonProperty("lolAcc") List<SummonerModel> lolAcc,
+                            @JsonProperty("twitchName") String twitchName){
+        this.lolAcc = lolAcc;
+        this.twitchName = twitchName;
+    }
+
     public List<SummonerModel> getLolAcc() {
         return lolAcc;
     }
@@ -25,17 +32,4 @@ public class StreamerResource {
         return twitchName;
     }
 
-
-    @Override
-    public String toString(){
-        String listString = "";
-        String listSize = "";
-        if(lolAcc != null) {
-            listString = lolAcc.stream()
-                    .map(Object::toString)
-                    .collect(Collectors.joining(", "));
-            listSize = String.valueOf(lolAcc.size());
-        }
-        return "Streamer: " + twitchName + " with accounts "+ listSize +  ": "+ listString;
-    }
 }

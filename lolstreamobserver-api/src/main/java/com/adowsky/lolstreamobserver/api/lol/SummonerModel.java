@@ -30,7 +30,7 @@ public class SummonerModel {
     @Override
     public String toString() {
 
-        return summoner + "[" + server.restId() + "]";
+        return summoner + "[" + server.getRestId() + "]";
     }
 
     public static class Builder {

@@ -1,7 +1,6 @@
-package com.adowsky.lolstreamobserver.impl.repository.impl;
+package com.adowsky.lolstreamobserver.impl.rest;
 
 import com.adowsky.lolstreamobserver.api.lol.*;
-import com.adowsky.lolstreamobserver.impl.repository.LoLRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +16,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Repository
-public class LoLRepositoryImpl implements LoLRepository {
-    private static Logger LOGGER = LoggerFactory.getLogger(LoLRepositoryImpl.class);
+public class RiotFacade {
+    private static Logger LOGGER = LoggerFactory.getLogger(RiotFacade.class);
     private final static ExecutorService GAME_EXECUTOR = Executors.newFixedThreadPool(20);
     private static final String BASE_LINK = ".api.pvp.net/";
     private static final String API_LOL = "api/lol/";
@@ -32,7 +31,7 @@ public class LoLRepositoryImpl implements LoLRepository {
 
 
     @Autowired
-    public LoLRepositoryImpl(RestTemplate restTemplate, RiotCredentials riotCredentials) {
+    public RiotFacade(RestTemplate restTemplate, RiotCredentials riotCredentials) {
         this.rest = restTemplate;
         this.riotCredentials = riotCredentials;
         champions = initializeChampionsMap();
@@ -51,7 +50,7 @@ public class LoLRepositoryImpl implements LoLRepository {
         }
     }
 
-    @Override
+    
     public Optional<Map<String, Summoner>> getSummoners(List<String> summs, LoLServer server) {
         try {
             return Optional.of(rest.exchange(
@@ -80,7 +79,7 @@ public class LoLRepositoryImpl implements LoLRepository {
                 riotCredentials.getKey();
     }
 
-    @Override
+    
     public Map<Long, Participant> getParticipants(Collection<Summoner> summ, LoLServer server) {
         List<LoLGameFindWorker> workers = summ.stream()
                 .map((summoner) -> new LoLGameFindWorker(summoner, server, riotCredentials.getKey()))
@@ -125,7 +124,7 @@ public class LoLRepositoryImpl implements LoLRepository {
             this.credentials = credentials;
         }
 
-        @Override
+        
         public Participant call() throws Exception {
             try {
                 GameResponse response = rest.getForObject(createGameRequestAddress(summ, server), GameResponse.class);
@@ -141,7 +140,7 @@ public class LoLRepositoryImpl implements LoLRepository {
                     server.name() +
                     BASE_LINK +
                     CURR_GAME +
-                    server.restId() +
+                    server.getRestId() +
                     "/" +
                     sm.getId() +
                     "?api_key=" +

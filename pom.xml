@@ -26,12 +26,20 @@
         <java.version>1.8</java.version>
         <jackson.version>2.7.3</jackson.version>
         <slf4j.version>1.7.21</slf4j.version>
+        <assertj.version>3.5.2</assertj.version>
         <maven.exec.version>1.5.0</maven.exec.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!--API-->
+            <dependency>
+                <groupId>com.adowsky</groupId>
+                <artifactId>lolstreamobserver-api</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
 
+            <!--JSON-->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
@@ -48,20 +56,23 @@
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.jayway.jsonpath</groupId>
                 <artifactId>json-path</artifactId>
                 <version>2.2.0</version>
             </dependency>
+            <!--LOGGING-->
             <dependency>
-                <groupId>com.adowsky</groupId>
-                <artifactId>lolstreamobserver-api</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
             </dependency>
+            <!--TEST-->
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
+            </dependency>
+            <!--SPRING-->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>

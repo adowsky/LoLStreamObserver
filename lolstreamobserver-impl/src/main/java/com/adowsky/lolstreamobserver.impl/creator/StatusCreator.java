@@ -1,13 +1,13 @@
-package com.adowsky.lolstreamobserver.impl.factory;
+package com.adowsky.lolstreamobserver.impl.creator;
 
-import com.adowsky.lolstreamobserver.impl.repository.LoLRepository;
-import com.adowsky.lolstreamobserver.impl.repository.TwitchRepository;
 import com.adowsky.lolstreamobserver.api.Status;
 import com.adowsky.lolstreamobserver.api.lol.LoLServer;
 import com.adowsky.lolstreamobserver.api.lol.Participant;
 import com.adowsky.lolstreamobserver.api.lol.Summoner;
 import com.adowsky.lolstreamobserver.api.lol.SummonerModel;
 import com.adowsky.lolstreamobserver.api.twitch.TwitchStream;
+import com.adowsky.lolstreamobserver.impl.rest.RiotFacade;
+import com.adowsky.lolstreamobserver.impl.rest.TwitchFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,33 +18,31 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Component
-public class StatusFactory {
+public class StatusCreator {
 
-    private final static ExecutorService SERVER_EXECUTOR = Executors.newFixedThreadPool(10);
-    private final static ExecutorService PART_EXECUTOR = Executors.newFixedThreadPool(10);
+    private final static ExecutorService SERVER_EXECUTOR = Executors.newFixedThreadPool(200);
+    private final static ExecutorService PART_EXECUTOR = Executors.newFixedThreadPool(200);
 
-    private Logger LOGGER = LoggerFactory.getLogger(StatusFactory.class);
+    private Logger LOGGER = LoggerFactory.getLogger(StatusCreator.class);
 
-    private TwitchRepository twitch;
+    private TwitchFacade twitch;
 
-    private LoLRepository riot;
+    private RiotFacade riot;
 
     @Autowired
-    public StatusFactory(TwitchRepository twitch, LoLRepository riot) {
+    public StatusCreator(TwitchFacade twitch, RiotFacade riot) {
         this.twitch = twitch;
         this.riot = riot;
     }
 
     public Status createStatus(String twitchName, List<SummonerModel> summonerName) {
-        Status.Builder result = new Status.Builder();
+        Status.Builder result = new Status.Builder().withStreamer(twitchName);
         Map<LoLServer, List<String>> usersOnServer = createSummonersOnServerMap(summonerName);
         Map<LoLServer, Map<String, Summoner>> usersDataOnServer = new HashMap<>();
-        TwitchStream stream = twitch.getStreamByUsername(twitchName);
-        result.withStreamer(twitchName);
-        if (stream != null) {
-            result.withGame(stream.getGame())
-                    .withOnline(true);
-        }
+        Optional<TwitchStream> stream = twitch.getStreamByUsername(twitchName);
+        stream.ifPresent((twitchStream) ->
+                result.withGame(twitchStream.getGame())
+                        .withOnline(true));
         try {
             invokeWorkers(prepareWorkers(usersOnServer, usersDataOnServer), SERVER_EXECUTOR);
             invokeWorkers(prepareParticipantWorkers(usersDataOnServer, result), PART_EXECUTOR);
@@ -100,7 +98,7 @@ public class StatusFactory {
                 .collect(Collectors.toList());
     }
 
-    private Void participantWorkerJob(Map.Entry<LoLServer, Map<String, Summoner>> entry, Status.Builder result){
+    private Void participantWorkerJob(Map.Entry<LoLServer, Map<String, Summoner>> entry, Status.Builder result) {
         Map<Long, Participant> apiResponse = riot.getParticipants(entry.getValue().values(), entry.getKey());
         result.withAnotherSummoners(prepareSummoners(apiResponse, entry.getKey()));
         return null;
