@@ -6,6 +6,9 @@ import EditStreamerView from './EditStreamerView.jsx';
 import  ButtonGroup from '../ButtonGroup.jsx';
 
 export default class Streamer extends React.Component {
+    static contextTypes = {
+        functions: React.PropTypes.object.isRequired
+    }
 
     constructor(props) {
         super(props);
@@ -19,16 +22,17 @@ export default class Streamer extends React.Component {
         this.handleGoToTwitch = this.handleGoToTwitch.bind(this);
         this.getEditButtons = this.getEditButtons.bind(this);
         this.getStandardButtons = this.getStandardButtons.bind(this);
+        this.handleAddNewSummoner = this.handleAddNewSummoner.bind(this);
 
     }
 
     componentWillReceiveProps(nextProps) {
         let online = nextProps.streamer.online;
 
-        if(online && !this.state.played) {
+        if (online && !this.state.played) {
             this.context.functions.playSound("streamer");
             this.setState({played: true});
-        } else if (!online && this.state.played){
+        } else if (!online && this.state.played) {
             this.setState({played: false});
         }
     }
@@ -49,10 +53,14 @@ export default class Streamer extends React.Component {
 
     handleGoToTwitch() {
         let url = Streamer.baseUrl + encodeURI(this.props.streamer.name);
-        window.open(url,"_blank");
+        window.open(url, "_blank");
     }
 
-     getStandardButtons() {
+    handleAddNewSummoner(){
+        this.context.functions.newSummonerInStreamer(this.props.streamer);
+    }
+
+    getStandardButtons() {
         return [
             {
                 name: "Twitch",
@@ -72,12 +80,17 @@ export default class Streamer extends React.Component {
         ];
     }
 
-     getEditButtons() {
+    getEditButtons() {
         return [
             {
                 name: "Apply",
                 aClass: "apply-button",
                 action: this.handleChangeEditState
+            },
+            {
+                name: "Add",
+                aClass: "add-button",
+                action: this.handleAddNewSummoner
             },
             {
                 name: "Remove",
@@ -95,11 +108,17 @@ export default class Streamer extends React.Component {
         };
         let style = (online) ? "col streamer online" : "col streamer";
         let buttons = (this.state.edited) ? this.getEditButtons() : this.getStandardButtons();
-        return <div className={style}>
-            {(this.state.edited) ? <EditStreamerView key="edit" name={name} handlers={editHandlers}/> :
-                <StandardStreamerView key="standard" name={name}/>}
+        return (
+            <div className={style}>
+                {
+                    (this.state.edited) ?
+                        <EditStreamerView key="edit" name={name} handlers={editHandlers}/> :
+                        <StandardStreamerView key="standard" name={name}/>
+                }
+
                 <ButtonGroup key="buttons" buttons={buttons}/>
-        </div>
+            </div>
+        );
     }
 }
 Streamer.contextTypes = {

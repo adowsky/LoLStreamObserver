@@ -5,12 +5,14 @@ import  ButtonGroup from '../ButtonGroup.jsx';
 
 export default class Summoner extends React.Component {
 
-    constructor(props) {
-        super(props);
+    constructor(...props) {
+        super(...props);
+
         this.state = {
-            edited: false,
+            edited: (this.props.summoner.name === ""),
             played: false
         };
+
         this.handleEditName = this.handleEditName.bind(this);
         this.handleChangeEditState = this.handleChangeEditState.bind(this);
         this.handleEditServer = this.handleEditServer.bind(this);
@@ -21,10 +23,10 @@ export default class Summoner extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         let online = nextProps.summoner.online;
-        if(online && !this.state.played) {
+        if (online && !this.state.played) {
             this.context.functions.playSound("summoner");
             this.setState({played: true});
-        } else if (!online && this.state.played){
+        } else if (!online && this.state.played) {
             this.setState({played: false});
         }
     }
@@ -82,18 +84,25 @@ export default class Summoner extends React.Component {
         let server = this.props.summoner.server;
         let online = (this.props.summoner.online) ? " online" : "";
         let champion = this.props.summoner.champion;
+        let edit = this.state.edited;
         let editHandlers = {
             name: this.handleEditName,
             server: this.handleEditServer,
             editState: this.handleChangeEditState
         };
-        let buttons = (this.state.edited) ? this.getEditButtons() : this.getStandardButtons();
-        return <div className={"row summoner" + online}>
-            {(this.state.edited) ?
-                <SummonerEditView name={name} online={online} server={server} handlers={editHandlers}/> :
-                <StandardSummonerView name={name} online={online} server={server} champion={champion}/>}
-            <ButtonGroup buttons={buttons}/>
-        </div>
+        let buttons = (edit) ? this.getEditButtons() : this.getStandardButtons();
+
+        return (
+            <div className={"row summoner" + online}>
+                {
+                    (edit) ?
+                        <SummonerEditView name={name} online={online} server={server} handlers={editHandlers}/> :
+                        <StandardSummonerView name={name} online={online} server={server} champion={champion}/>
+                }
+
+                <ButtonGroup buttons={buttons}/>
+            </div>
+        );
     }
 }
 

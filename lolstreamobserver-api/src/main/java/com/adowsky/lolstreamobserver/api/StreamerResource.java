@@ -13,6 +13,7 @@ import java.util.List;
 public class StreamerResource {
 
     private List<SummonerModel> lolAcc;
+
     @NotNull
     @Size(min = 1)
     private String twitchName;

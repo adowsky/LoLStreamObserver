@@ -11,20 +11,15 @@ export default class TableData extends React.Component {
     }
 
     static summonersFromArray(array, removeFunc) {
-        return array.map(((summoner) =>
-                <Summoner key={summoner.name + summoner.server} summoner={summoner}
+        return array.map(((summoner, index) =>
+                <Summoner key={"#" + index + summoner.name + summoner.server} summoner={summoner}
                           removeHandler={removeFunc}/>)
         );
     };
 
     removeSummoner(streamer, summoner) {
         console.log("Removing summoner: "+ summoner + "in context of streamer: " + streamer);
-        //this.context.functions.removeSummoner(streamer, summoner);
-        let index = streamer.summoners.indexOf(summoner);
-        if (index >= 0) {
-            streamer.summoners.splice(index, 1);
-            this.setState(this.state);
-        }
+        this.context.functions.removeSummoner(streamer, summoner);
     }
 
     removeStreamer(streamer) {

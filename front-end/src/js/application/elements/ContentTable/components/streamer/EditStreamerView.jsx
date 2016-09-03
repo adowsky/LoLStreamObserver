@@ -1,9 +1,9 @@
 import React from 'react';
-import ButtonGroup from '../ButtonGroup.jsx';
 
 export default class EditStreamerView extends React.Component {
     constructor(props) {
         super(props);
+
         this.keyPressedHandler = this.keyPressedHandler.bind(this);
 
     }
@@ -18,9 +18,12 @@ export default class EditStreamerView extends React.Component {
         let nameHandler = this.props.handlers.name;
         let name = this.props.name;
         let keyHandler = this.keyPressedHandler;
-        return <div className="streamer-content">
+
+        return (
+            <div className="streamer-content">
                 <input type="text" value={name} onChange={nameHandler} onKeyPress={keyHandler}/>
             </div>
+        );
     }
 }
 EditStreamerView.propTypes = {

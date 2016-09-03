@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 @Component
 public class StatusCreator {
 
-    private final static ExecutorService SERVER_EXECUTOR = Executors.newFixedThreadPool(200);
-    private final static ExecutorService PART_EXECUTOR = Executors.newFixedThreadPool(200);
+    private final static ExecutorService SERVER_EXECUTOR = Executors.newFixedThreadPool(50);
+    private final static ExecutorService PART_EXECUTOR = Executors.newFixedThreadPool(50);
 
     private Logger LOGGER = LoggerFactory.getLogger(StatusCreator.class);
 

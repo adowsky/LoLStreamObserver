@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
-public class RiotCredentials {
+class RiotCredentials {
     private static final String SECRET_KEY_PROPERTY = "riot.secret";
     private static final Logger LOGGER = LoggerFactory.getLogger(RiotCredentials.class);
 
@@ -19,8 +19,6 @@ public class RiotCredentials {
         this.key = environment.getProperty(SECRET_KEY_PROPERTY);
         if(StringUtils.isEmpty(key)){
             LOGGER.warn("RIOT secret key not found in environment!");
-        } else {
-            LOGGER.info("Key: "+ key);
         }
     }
 

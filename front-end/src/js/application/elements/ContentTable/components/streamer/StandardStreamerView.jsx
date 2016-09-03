@@ -1,5 +1,4 @@
 import React from 'react';
-import  ButtonGroup from '../ButtonGroup.jsx';
 
 export default class StandardStreamerView extends React.Component {
     constructor(props) {

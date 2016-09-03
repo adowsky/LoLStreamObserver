@@ -17,10 +17,12 @@ $online-background-color: rgba(0,232,7,0.03);
 $button-background-color: #484646;
 $button-border-color: #a0a0a0;
 $button-decoration-color: #d6d6e9;
+$button-active-decoration-color: #252525;
 $input-disabled-bg-color: #cecece;
 $input-disabled-color: #999;
 $select-arrow-color : #5d5d5d;
 $dark-font: #292929;
+
 
 $modal-background-color: rgba(4, 2, 14, 0.69);
 $modal-bars-color: #232323;
@@ -83,7 +85,8 @@ input {
   transition: border 0.3s;
   background: white;
   color: $dark-font;
-  outline: none
+  outline: none;
+  box-sizing: border-box;
 }
 
 input::-moz-placeholder {
@@ -109,7 +112,7 @@ input:disabled{
 }
 
 select{
-  margin: 0 1px 5px 0;
+  margin-right: 1px;
   background: white;
   padding: 7px 11px 7px 7px;
   color: $dark-font;
@@ -186,7 +189,6 @@ select:disabled{
     background: transparent;
     border: 0;
     padding: 5px 10px;
-    display: inline-flex;
     align-items: center;
 
     &:active &:focus {
@@ -205,6 +207,8 @@ select:disabled{
   }
 }
 
+
+
 .content {
   display: flex;
   @include flex-wrap(wrap);
@@ -215,16 +219,12 @@ select:disabled{
 
   button {
     position: relative;
-    border-radius: 10px;
     text-decoration: none;
     background-color: $button-background-color;
-    border: 2px $button-border-color;
+    border: 0;
     border-bottom: solid $button-decoration-color;
     text-shadow: 0px -2px $button-decoration-color;
     margin-right: 4px;
-    /* Animation */
-    transition: all 0.1s;
-    -webkit-transition: all 0.1s;
   }
 
   button:hover,
@@ -233,9 +233,26 @@ select:disabled{
   }
 
   button:active {
-    transform: translate(0px, 5px);
-    -webkit-transform: translate(0px, 5px);
-    border-bottom: 1px solid;
+    border-bottom: solid $button-active-decoration-color;
+  }
+
+  @media screen and (max-width: 900px) {
+    input {
+      width: 100%;
+    }
+
+    .select-wrapper{
+      width: 100%;
+      margin: 5px auto;
+    }
+
+    select{
+      width: 100%;
+    }
+
+    .summoner-content {
+      flex-wrap: wrap;
+    }
   }
 
   .content-header {
@@ -311,7 +328,6 @@ select:disabled{
   .summoner-content {
     display: inline-flex;
     justify-content: center;
-    align-items: center;
     width: 70%;
 
     img{
@@ -378,6 +394,20 @@ select:disabled{
       box-sizing: border-box;
       margin-bottom: 5px;
     }
+    @media screen and (max-width: 665px) {
+      .form-row {
+        flex-wrap: wrap;
+
+        .select-wrapper{
+          width: 100%;
+          margin: 5px auto;
+        }
+
+        select{
+          width: 100%;
+        }
+      }
+    }
 
   }
   @keyframes modal {
@@ -394,6 +424,10 @@ select:disabled{
 
   .form-row {
     display: flex;
+
+    input{
+      margin-bottom: 0;
+    }
   }
 
   button {
@@ -424,6 +458,10 @@ select:disabled{
 
 .twitch-button {
   background-image: url("../resources/img/twitch_icon.png");
+}
+
+.add-button {
+  background-image: url("../resources/img/add_btn.png");
 }
 
 .button-transition-appear {

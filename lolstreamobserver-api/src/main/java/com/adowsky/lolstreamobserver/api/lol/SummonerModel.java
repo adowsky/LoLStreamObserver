@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 public class SummonerModel {
     @NotNull
     private String summoner;
+
     @NotNull
     private LoLServer server;
 

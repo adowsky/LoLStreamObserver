@@ -28,6 +28,6 @@ public enum LoLServer {
 
     @JsonCreator
     public static LoLServer fromString(String key){
-        return (key == null) ? null : LoLServer.valueOf(key.toLowerCase());
+        return (key == null) ? null : LoLServer.valueOf(key.toUpperCase());
     }
 }

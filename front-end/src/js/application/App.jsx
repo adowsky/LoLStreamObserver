@@ -23,6 +23,7 @@ export default class App extends React.Component {
         this.onlineNotification = this.onlineNotification.bind(this);
         this.changeOptions = this.changeOptions.bind(this);
         this.offlineSummoners = this.offlineSummoners.bind(this);
+        this.newSummonerInStreamer = this.newSummonerInStreamer.bind(this);
 
         console.log(this.props.host);
 
@@ -32,8 +33,8 @@ export default class App extends React.Component {
         };
 
         this.rest = rest;
-        this.summonerSound = new Audio("../sound/summ_on.wav");
-        this.streamerSound = new Audio("../sound/streamer_on.wav");
+        this.summonerSound = new Audio("../sound/summoner_on.mp3");
+        this.streamerSound = new Audio("../sound/streamer_on.mp3");
         this.summonerSound.volume = 0.5;
     }
 
@@ -44,8 +45,8 @@ export default class App extends React.Component {
 
         streamers = streamers.map((streamer) => {
             streamer.online = false;
-            streamer.summoners = streamer.summoners.map(summoner =>{
-                if(summoner.hasOwnProperty('champion'))
+            streamer.summoners = streamer.summoners.map(summoner => {
+                if (summoner.hasOwnProperty('champion'))
                     delete summoner['champion'];
                 summoner.online = false;
                 return summoner;
@@ -97,26 +98,43 @@ export default class App extends React.Component {
             removeSummoner: this.removeSummoner,
             removeStreamer: this.removeStreamer,
             playSound: this.onlineNotification,
-            changeOptions: this.changeOptions
+            changeOptions: this.changeOptions,
+            newSummonerInStreamer: this.newSummonerInStreamer
         }; //@todo replace with proper functions
     }
 
-    changeOptions(options){
+    changeOptions(options) {
         let newOptions = Object.assign({}, this.state.options, options);
-        this.setState({options: newOptions});
 
+        this.setState({options: newOptions});
+    }
+
+    newSummonerInStreamer(streamer) {
+        let index = this.state.streamers.indexOf(streamer);
+        let streamers = this.state.streamers;
+
+        streamers[index].summoners.push(
+            {
+                name: "",
+                server: "EUNE",
+            });
+
+        this.setState(Object.assign({}, this.state, {
+            streamers: streamers
+        }));
     }
 
     onlineNotification(type = "") {
-        if(this.state.options.sound) {
+        if (this.state.options.sound) {
             switch (type) {
                 case "summoner":
-                    if(!this.summonerSound.paused || this.summonerSound.currentTime) {
+                    if (this.summonerSound.paused || this.summonerSound.currentTime === 0) {
                         this.summonerSound.play();
                     }
                     break;
+
                 case "streamer":
-                    if(!this.streamerSound.paused || this.streamerSound.currentTime) {
+                    if (this.streamerSound.paused || this.streamerSound.currentTime === 0) {
                         this.streamerSound.play();
                     }
                     break;
@@ -189,8 +207,6 @@ export default class App extends React.Component {
         let host = this.props.host;
 
         this.rest({
-            // path: "http://lolstreamobserver.herokuapp.com/streamers",
-            // path: "http://localhost:8080/streamers",
             path: `http://${host}/streamers`,
             entity: this.prepareRequestBody()
         }).then((response) => {
@@ -198,12 +214,15 @@ export default class App extends React.Component {
             response.entity.forEach((streamer) => {
                 let target = currentStreamers.find((old, index) => old.name === streamer.streamer);
                 target.online = streamer.online;
+
                 streamer.summoners.forEach((summ) => {
                     let validSummoner = target.summoners.find(summoner => {
-                            let responseName = summ.summonerName.toLowerCase().replace(" ", "");
-                            let localName = summoner.name.toLowerCase().replace(" ", "");
-                            return localName === responseName && summ.server === summoner.server.toLowerCase()
-                        });
+                        let responseName = summ.summonerName.toLowerCase().replace(" ", "");
+                        let localName = summoner.name.toLowerCase().replace(" ", "");
+
+                        return localName === responseName && summ.server.toUpperCase() === summoner.server.toUpperCase()
+                    });
+
                     if (validSummoner != null) {
                         validSummoner.online = true;
                         validSummoner.champion = summ.championNameId;
@@ -217,11 +236,11 @@ export default class App extends React.Component {
     }
 
     offlineSummoners() {
-        this.state.streamers.forEach(streamer =>{
+        this.state.streamers.forEach(streamer => {
             streamer.summoners.forEach(summoner => {
                 summoner.online = false;
                 delete summoner.champion;
-        })
+            })
         });
     }
 
@@ -231,18 +250,20 @@ export default class App extends React.Component {
         let finishModal = this.invokeAdd.bind(this);
         let shouldFinish = this.state.invokeAdd;
         let finishAdd = this.addEntry;
+
         return <AppView >
             {(showAddModal) ?
                 <Modal header={modalTitle} finish={finishModal}>
                     <AddEntryForm shouldFinish={shouldFinish} finish={finishAdd}/>
-                </Modal> : null}
+                </Modal> : null
+            }
         </AppView>
     }
 
 }
 
 App.defaultOptions = {
-  sound: true
+    sound: true
 };
 
 App.childContextTypes = {

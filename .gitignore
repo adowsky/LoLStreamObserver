@@ -1,8 +1,7 @@
 /.mvn
 /.vscode
 **/*.iml
-/front-end/node_modules/
-/notes
-**/target/
+**/target
 **/.idea/
-/public/
+**/public/
+**/node_modules
