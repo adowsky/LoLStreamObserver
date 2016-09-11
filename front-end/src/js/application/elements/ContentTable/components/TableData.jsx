@@ -19,7 +19,7 @@ export default class TableData extends React.Component {
 
     removeSummoner(streamer, summoner) {
         console.log("Removing summoner: "+ summoner + "in context of streamer: " + streamer);
-        this.context.functions.removeSummoner(streamer, summoner);
+        this.context.functions.removeSummoner(streamer, summoner);  
     }
 
     removeStreamer(streamer) {

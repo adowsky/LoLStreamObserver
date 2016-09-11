@@ -5,3 +5,4 @@
 **/.idea/
 **/public/
 **/node_modules
+/front-end/resources/sound/*.wav

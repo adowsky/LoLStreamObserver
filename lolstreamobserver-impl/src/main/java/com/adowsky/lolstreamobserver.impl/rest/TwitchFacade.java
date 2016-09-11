@@ -3,16 +3,17 @@ package com.adowsky.lolstreamobserver.impl.rest;
 import com.adowsky.lolstreamobserver.api.twitch.StreamResource;
 import com.adowsky.lolstreamobserver.api.twitch.TwitchStream;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
 
-@Repository
+@Component
 public class TwitchFacade {
 
-        private static final String TWITCH_API_URL = "https://api.twitch.tv/kraken/streams/";
+    private static final String TWITCH_API_URL = "https://api.twitch.tv/kraken/streams/";
 
     private final RestTemplate restTemplate;
 

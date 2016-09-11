@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Repository
+@Component
 public class RiotFacade {
     private static Logger LOGGER = LoggerFactory.getLogger(RiotFacade.class);
     private final static ExecutorService GAME_EXECUTOR = Executors.newFixedThreadPool(20);
@@ -110,10 +110,7 @@ public class RiotFacade {
 
     }
 
-    private static class LoLGameFindWorker implements Callable<Participant> {
-
-        private static final RestTemplate rest = new RestTemplate();
-
+    private class LoLGameFindWorker implements Callable<Participant> {
         private final Summoner summ;
         private final LoLServer server;
         private final String credentials;

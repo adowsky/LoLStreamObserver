@@ -6,11 +6,11 @@ import browserify from "browserify";
 import source from "vinyl-source-stream";
 import buffer from "vinyl-buffer";
 import htmlmin from "gulp-htmlmin";
-import image from 'gulp-image';
+import image from "gulp-image";
 import sass from "gulp-sass";
-import uglify from 'gulp-uglify';
-import gulpif from 'gulp-if';
-import ffmpeg from 'gulp-fluent-ffmpeg';
+import uglify from "gulp-uglify";
+import gulpif from "gulp-if";
+import ffmpeg from "gulp-fluent-ffmpeg";
 
 const basePath = "public/";
 

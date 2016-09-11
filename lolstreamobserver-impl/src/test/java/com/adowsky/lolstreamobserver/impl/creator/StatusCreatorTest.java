@@ -134,5 +134,4 @@ public class StatusCreatorTest {
         //then
         assertThat(status).isEqualToComparingFieldByField(expected);
     }
-
 }
